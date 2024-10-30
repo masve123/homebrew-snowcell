@@ -1,0 +1,33 @@
+name: Update formula
+
+on:
+  repository_dispatch:
+    types: [update-formula]
+
+permissions:
+  contents: write
+
+jobs:
+  update-formula:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate formula
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 bin/formula.py \
+            --name ${{ github.event.client_payload.name }} \
+            --version ${{ github.event.client_payload.version }} \
+            --tag ${{ github.event.client_payload.tag }} \
+            --repo ${{ github.event.client_payload.repo }}
+
+      - name: Commit changes
+        uses: actions-x/commit@v6
+        with:
+          name: github-actions[bot]
+          email: 41898282+github-actions[bot]@users.noreply.github.com
+          message: Updated formula ${{ github.event.client_payload.name }}
